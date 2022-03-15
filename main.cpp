@@ -1,61 +1,87 @@
-#include<bits/stdc++.h>
+#include <iterator>
+#include <iostream>
+#include <fstream>
+#include <string>
+#include <regex>
+#include <vector>
+#include <map>
+
 using namespace std;
 
-void multiply(int F[2][2], int M[2][2]);
+class Token {
+public :
+    string token;
+    string value;
+    int line;
+    int position;
+};
 
-void power(int F[2][2], int n);
+int main(){
 
-int fib(int n)
-{
-    int F[2][2] = { { 1, 1 }, { 1, 0 } };
+    ifstream finT("tokens.txt");
+    ifstream finI("input.txt");
 
-    if (n == 0)
-        return 0;
+    map<string,string> regularExpressions;
 
-    power(F, n - 1);
+    string t, ct;
+    int counter = 0;
+    while(finT >> t){
+        counter++;
+        if(counter % 2 == 1){
+            regularExpressions.insert({t, ""});
+            ct = t;
+        }
+        else{
+            regularExpressions.find(ct)->second = t;
+        }
+    }
 
-    return F[0][0];
-}
+    string allRegex = "";
+     for (auto regexIterator = regularExpressions.begin(); regexIterator != regularExpressions.end(); ++regexIterator){
+        allRegex += regexIterator->first + "|";
+     }
+    allRegex = allRegex.substr(0, allRegex.size()-1);
 
-void multiply(int F[2][2], int M[2][2])
-{
-    int x = F[0][0] * M[0][0] +
-            F[0][1] * M[1][0];
-    int y = F[0][0] * M[0][1] +
-            F[0][1] * M[1][1];
-    int z = F[1][0] * M[0][0] +
-            F[1][1] * M[1][0];
-    int w = F[1][0] * M[0][1] +
-            F[1][1] * M[1][1];
+    vector<Token> tokenList;
 
-    F[0][0] = x;
-    F[0][1] = y;
-    F[1][0] = z;
-    F[1][1] = w;
-}
+    int line = 1;
 
-void power(int F[2][2], int n)
-{
-    int i;
-    int M[2][2] = { { 1, 1 }, { 1, 0 } };
+    string s;
+    while(getline(finI, s)){ /// Parcurg linie cu linie inputul si pastrez intr-o lista de clase 'Token' toate detaliile mai putin identificatorul
+        regex reg(allRegex); /// Pe care nu pot sa il stiu deoarece trec cu allRegex
 
-    // n - 1 times multiply the
-    // matrix to {{1,0},{0,1}}
-    for(i = 2; i <= n; i++)
-        multiply(F, M);
-}
+        auto applyRegexOnTextIterator = sregex_iterator( s.begin(), s.end(), reg);
 
-// Driver code
-int main()
-{   time_t start, end;
-    long n;
-    cin >> n;
-    start = clock();
-    cout << " " <<  fib(n)<<endl;
-     end = clock();
-    double time_taken = double(end - start) / double(CLOCKS_PER_SEC);
-    cout << "Time taken by program is : " << fixed
-         << time_taken << setprecision(5);
-    cout << " sec " << endl;
-    return 0;
+        auto applyRegexOnTextIteratorEnd = sregex_iterator();
+
+        int poz = 1;
+
+        for ( auto it = applyRegexOnTextIterator; it != applyRegexOnTextIteratorEnd; ++it ){
+            Token tok;
+            tok.value = it->str();
+            tok.line = line;
+            tok.position = poz++;
+
+            tokenList.push_back(tok);
+        }
+        line++;
+    }
+
+    /// Nemaicontand pozitia si alte informatii despre tokeni, aici gasesc trecand prin fiecare expresie regulata in parte si setez identificatorul(token)
+    for (auto regexIterator = regularExpressions.begin(); regexIterator != regularExpressions.end(); ++regexIterator){
+        regex reg(regexIterator->first);
+
+        smatch m;
+         for (auto &fname : tokenList) {
+            if(regex_match(fname.value, m, reg)){
+                fname.token = regexIterator->second;
+            }
+         }
+
+
+    }
+
+    for (auto match = tokenList.begin(); match != tokenList.end(); ++match){
+        cout<< "Token = " << match->token << " ; Value = " << match->value << " ; Line = " << match->line << " ; Index = " << match->position << endl;
+    }
 }
