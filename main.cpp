@@ -1,150 +1,61 @@
-/*
- * Description :
-			It reads in the NFA from "NFA.txt" and writes out the corresponding DFA to "DFA.txt".
-			"NFA.txt" must have the following format:
-				N M
-				F a1 a2 ... af
-				T
-				s1 y1 T1 t1 t2 ... tt1
-				s2 y2 T2 t1 t2 ... tt2
-				 :
-				 :
-			Here, 	N -> No. of states (states are numbered 0 ... N-1), 0 is the start state
-				M -> Size of input alphabet (input symbols are
-					numbered 1 ... M and 0 is reserved for epsilon)
-				F -> No. of final states, followed by F states ( 0 <= ai <= N-1)
-				T -> No. of transitions, followed by T lines
-				si -> Previous state ( 0 <= si <= N-1)
-				yi -> Input symbol or epsilon ( 0 <= yi <= M)
-				Ti -> No. of states the NFA moves from si on input yi, followed by Ti states
-
-			"DFA.txt" will have the following format:
-				N M
-				F a1 a2 ... af
-				s1 y1 t1
-				s2 y2 y2
-			 	:
-				:
-			Here, 	N -> No. of states in the DFA (states are numbered 0 ... N-1), 0 is the start state
-				M -> Size of input alphabet (input symbols are numbered 1 ... M)
-				F -> No. of final states followed by F states ( 0 <= ai <= N-1)
-				si -> Previous state
-				yi -> Input symbol
-				ti -> Next state
-			Each line until the end of file contains one transition ( si yi ti )
- */
-
-
-#include <cstdio>
-#include <fstream>
-#include <iostream>
-#include <bitset>
-#include <vector>
-#include <cstring>
-#include <cstdlib>
-#include <algorithm>
-#include <queue>
-#include <set>
-#define MAX_NFA_STATES 10
-#define MAX_ALPHABET_SIZE 10
+#include<bits/stdc++.h>
 using namespace std;
 
-// Representation of an NFA state
-class NFAstate {
-    public:
-        int transitions[MAX_ALPHABET_SIZE][MAX_NFA_STATES];
-        NFAstate()  {
-            for(int i=0; i<MAX_ALPHABET_SIZE; i++)
-                for(int j=0; j<MAX_NFA_STATES; j++)
-                    transitions[i][j] = -1;
-        }
-} *NFAstates;
+void multiply(int F[2][2], int M[2][2]);
 
-struct DFAstate {
-    bool finalState;
-    bitset<MAX_NFA_STATES> constituentNFAstates;
-    bitset<MAX_NFA_STATES> transitions[MAX_ALPHABET_SIZE];
-    int symbolicTransitions[MAX_ALPHABET_SIZE];
-};
+void power(int F[2][2], int n);
 
-set <int> NFA_finalStates;
-vector <int> DFA_finalStates;
-vector <DFAstate*> DFAstates;
-queue <int> incompleteDFAstates;
-int N, M;   // N -> No. of states, M -> Size of input alphabet
+int fib(int n)
+{
+    int F[2][2] = { { 1, 1 }, { 1, 0 } };
 
-void NFAmove(int X, int A, bitset<MAX_NFA_STATES> &Y)   {
-    for(int i=0; i<N && NFAstates[X].transitions[A][i] != -1; i++)
-        Y[NFAstates[X].transitions[A][i]] = 1;
+    if (n == 0)
+        return 0;
+
+    power(F, n - 1);
+
+    return F[0][0];
 }
 
-void NFAmove(bitset<MAX_NFA_STATES> X, int A, bitset<MAX_NFA_STATES> &Y)   {
-    for(int i=0; i<N; i++)
-        if(X[i] == 1)
-            NFAmove(i, A, Y);
+void multiply(int F[2][2], int M[2][2])
+{
+    int x = F[0][0] * M[0][0] +
+            F[0][1] * M[1][0];
+    int y = F[0][0] * M[0][1] +
+            F[0][1] * M[1][1];
+    int z = F[1][0] * M[0][0] +
+            F[1][1] * M[1][0];
+    int w = F[1][0] * M[0][1] +
+            F[1][1] * M[1][1];
+
+    F[0][0] = x;
+    F[0][1] = y;
+    F[1][0] = z;
+    F[1][1] = w;
 }
 
-int main()  {
-    int i, j, X, Y, A, T, F, D;
+void power(int F[2][2], int n)
+{
+    int i;
+    int M[2][2] = { { 1, 1 }, { 1, 0 } };
 
-    ifstream fin("NFA.txt");
-    fin >> N >> M;
-    NFAstates = new NFAstate[N];
-    fin >> F;
-    for(i=0; i<F; i++)    {
-        fin >> X;
-        NFA_finalStates.insert(X);
-    }
-    fin >> T;
-    while(T--)   {
-        fin >> X >> A >> Y;
-        for(i=0; i<Y; i++)  {
-            fin >> j;
-            NFAstates[X].transitions[A][i] = j;
-        }
-    }
-    fin.close();
+    // n - 1 times multiply the
+    // matrix to {{1,0},{0,1}}
+    for(i = 2; i <= n; i++)
+        multiply(F, M);
+}
 
-    D = 1;
-    DFAstates.push_back(new DFAstate);
-    DFAstates[0]->constituentNFAstates[0] = 1;
-    for(j=0; j<N; j++)
-        if(DFAstates[0]->constituentNFAstates[j] == 1 && NFA_finalStates.find(j) != NFA_finalStates.end())  {
-            DFAstates[0]->finalState = true; DFA_finalStates.push_back(0); break;
-        }
-    incompleteDFAstates.push(0);
-    while(!incompleteDFAstates.empty()) {
-        X = incompleteDFAstates.front(); incompleteDFAstates.pop();
-        for(i=1; i<=M; i++)  {
-            NFAmove(DFAstates[X]->constituentNFAstates, i, DFAstates[X]->transitions[i]);
-            for(j=0; j<D; j++)
-                if(DFAstates[X]->transitions[i] == DFAstates[j]->constituentNFAstates)  {
-                   DFAstates[X]->symbolicTransitions[i] = j;    break;
-                }
-            if(j == D)   {
-                DFAstates[X]->symbolicTransitions[i] = D;
-                DFAstates.push_back(new DFAstate);
-                DFAstates[D]->constituentNFAstates = DFAstates[X]->transitions[i];
-                for(j=0; j<N; j++)
-                    if(DFAstates[D]->constituentNFAstates[j] == 1 && NFA_finalStates.find(j) != NFA_finalStates.end())  {
-                        DFAstates[D]->finalState = true; DFA_finalStates.push_back(D); break;
-                    }
-                incompleteDFAstates.push(D);
-                D++;
-            }
-        }
-    }
-
-    ofstream fout("DFA.txt");
-    fout << D << " " << M << "\n" << DFA_finalStates.size();
-    for(vector<int>::iterator it=DFA_finalStates.begin(); it!=DFA_finalStates.end(); it++)
-        fout << " " << *it;
-    fout << "\n";
-    for(i=0; i<D; i++)  {
-        for(j=1; j<=M; j++)
-            fout << i << " " << j << " " << DFAstates[i]->symbolicTransitions[j] << "\n";
-    }
-    fout.close();
-
+// Driver code
+int main()
+{   time_t start, end;
+    long n;
+    cin >> n;
+    start = clock();
+    cout << " " <<  fib(n)<<endl;
+     end = clock();
+    double time_taken = double(end - start) / double(CLOCKS_PER_SEC);
+    cout << "Time taken by program is : " << fixed
+         << time_taken << setprecision(5);
+    cout << " sec " << endl;
     return 0;
 }
