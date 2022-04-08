@@ -1,0 +1,10 @@
+S>aB
+S>AC
+A>a
+A>ACSC
+A>BC
+B>b
+B>aA
+C>e
+C>BA
+E>bB
