@@ -1,0 +1,8 @@
+S-aS
+S-bS
+S-cD
+D-dD
+D-bF
+D-a 
+F-bS
+F-a
