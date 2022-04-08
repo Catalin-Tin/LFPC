@@ -1,5 +1,0 @@
-[0-9]+ Number
-[a-zA-Z0-9]+ Identifier
-"|'|\=|\?|\.|\,|\;|\(|\)|\{|\} Other-Operators
-\*|\+|\-|\%|\/ Mathematical-Operators
-\>|\< Logical-Operators
