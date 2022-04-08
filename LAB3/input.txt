@@ -1,0 +1,5 @@
+int main(){
+    float a,b=6;
+    double c =7, d = 8 ,eRtE24=10;
+    return 0;
+}
