@@ -1,0 +1,8 @@
+6
+S -> Aa | AadB
+B -> Daf
+D -> cE | c
+E -> ec | ecE
+A -> bF | b
+F -> ebF | eb
+bebebcecaf
