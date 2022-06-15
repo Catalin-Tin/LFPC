@@ -191,7 +191,7 @@ void check_str()
 }
 int main()
 {
-	int n;
+	int n,p;
 	cout<<"HOW MANY RULES ARE THERE ? ";
 	cin>>n;
 	cout<<"ENTER THEM ONE BY ONE : "<<endl;
@@ -202,6 +202,69 @@ int main()
 		getline(cin,s);
 		set_map(s);
 	}
+    cout<<"\nEnter number of non terminals: ";
+    cin>>p;
+    cout<<"\nEnter non terminals one by one: ";
+    int i;
+    vector<string> nonter(p);
+    vector<int> leftrecr(p,0);
+    for(i=0;i<p;++i) {
+            cout<<"\nNon terminal "<<i+1<<" : ";
+        cin>>nonter[i];
+    }
+    vector<vector<string> > prod;
+    cout<<"\nEnter '^' for null";
+    for(i=0;i<p;++i) {
+        cout<<"\nNumber of "<<nonter[i]<<" productions: ";
+        int k;
+        cin>>k;
+        int j;
+        cout<<"\nOne by one enter all "<<nonter[i]<<" productions";
+        vector<string> temp(k);
+        for(j=0;j<k;++j) {
+            cout<<"\nRHS of production "<<j+1<<": ";
+            string abc;
+            cin>>abc;
+            temp[j]=abc;
+            if(nonter[i].length()<=abc.length()&&nonter[i].compare(abc.substr(0,nonter[i].length()))==0)
+                leftrecr[i]=1;
+        }
+        prod.push_back(temp);
+    }
+    for(i=0;i<p;++i) {
+        cout<<leftrecr[i];
+    }
+    for(i=0;i<p;++i) {
+        if(leftrecr[i]==0)
+            continue;
+        int j;
+        nonter.push_back(nonter[i]+"'");
+        vector<string> temp;
+        for(j=0;j<prod[i].size();++j) {
+            if(nonter[i].length()<=prod[i][j].length()&&nonter[i].compare(prod[i][j].substr(0,nonter[i].length()))==0) {
+                string abc=prod[i][j].substr(nonter[i].length(),prod[i][j].length()-nonter[i].length())+nonter[i]+"'";
+                temp.push_back(abc);
+                prod[i].erase(prod[i].begin()+j);
+                --j;
+            }
+            else {
+                prod[i][j]+=nonter[i]+"'";
+            }
+        }
+        temp.push_back("^");
+        prod.push_back(temp);
+    }
+    cout<<"\n\n";
+    cout<<"\nNew set of non-terminals: ";
+    for(i=0;i<nonter.size();++i)
+        cout<<nonter[i]<<" ";
+    cout<<"\n\nNew set of productions: ";
+    for(i=0;i<nonter.size();++i) {
+        int j;
+        for(j=0;j<prod[i].size();++j) {
+            cout<<"\n"<<nonter[i]<<" -> "<<prod[i][j];
+        }
+    }
 	cout<<"MAP IS : \n";
 	for(auto itr=rules.begin();itr!=rules.end();itr++)
 		cout<<itr->first<<" "<<itr->second<<endl;
@@ -269,17 +332,17 @@ int main()
 	for(int i=0;i<stack.size();i++)
 		cout<<stack[i]<<"\t\t"<<cur_str[i]<<"\t\t"<<rule_used[i]<<endl;
 	if(stack[stack.size()-1][0]=='&' && cur_str[cur_str.size()-1][0]=='&')
-		cout<<"\n\nSTRING IS ACCEPTED !!!";
+		cout<<"\n\nGRAMMER IS ACCEPTED !!!";
 	else
-		cout<<"\nSTRING IS NOT ACCEPTED !!!";
+		cout<<"\nGRAMMER IS NOT ACCEPTED !!!";
 	return 0;
 }
 /*6
 S -> Aa | AadB
 B -> Daf
 D -> cE | c
-E -> ec | ecE
+E -> ec | ecE | $
 A -> bF | b
-F -> ebF | eb
-bebebcecaf
+F -> ebF | eb | $
+beba / bebadcecaf
 */
